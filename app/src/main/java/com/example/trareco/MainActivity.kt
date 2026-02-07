@@ -52,7 +52,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
+
+import com.example.trareco.ui.theme.White
+import com.example.trareco.ui.theme.Gainsboro
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme.colorScheme
 
 
 @SuppressLint("NewApi")
@@ -89,64 +97,60 @@ class MainActivity : ComponentActivity() {
             val currentTime = LocalDateTime.now()
             val currentDate: String = currentTime.year.toString() + "_" + currentTime.monthValue.toString() + "_" + currentTime.dayOfMonth.toString()
 
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-            )
-            {
-                NavHost(navController = navController,
-                    startDestination = DailyToDo.Home.name,
-                    modifier = Modifier.padding())
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                //color = MaterialTheme.colorScheme.background
+                color = Gainsboro// <----動的にしたい
+            ){
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                )
                 {
-                    //ホーム画面
-                    composable(route = DailyToDo.Home.name)
+                    NavHost(navController = navController,
+                        startDestination = DailyToDo.Home.name,
+                        modifier = Modifier.padding())
                     {
-                        Column(
-                            modifier = Modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally)
+                        //ホーム画面
+                        composable(route = DailyToDo.Home.name)
                         {
-                            DisplayTodayDate()
-
-                            CheckToDo(currentDate, viewModel, records, recordsMap1,recordsMap2, recordsMap3)
-
-                            FiveDaysCalendar(recordsMap1 = recordsMap1, recordsMap2 = recordsMap2, recordsMap3 = recordsMap3)
-                            NewRecord(onNavigate = {
-                                navController.navigate(DailyToDo.NewRecord.name)
-                            })
+                            Column(
+                                modifier = Modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally)
+                            {
+                                DisplayTodayDate(fontSize = 35)
+                                //Box(modifier = Modifier.size(width = 400.dp, height = 100.dp).background(color = Color(0xFFFF0000))){}
+                                CheckToDo(currentDate, viewModel, records, recordsMap1,recordsMap2, recordsMap3)
+                                FiveDaysCalendar(recordsMap1 = recordsMap1, recordsMap2 = recordsMap2, recordsMap3 = recordsMap3)
+                                NewRecord(onNavigate = {
+                                    navController.navigate(DailyToDo.NewRecord.name)
+                                })
+                            }
                         }
-                    }
-                    //新しい記録
-                    composable(route = DailyToDo.NewRecord.name)
-                    {
-                        Column(
-                            modifier = Modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally)
+                        //新しい記録
+                        composable(route = DailyToDo.NewRecord.name)
                         {
-                            //DisplayTodayDate()
-                            InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
-                                val currentTime = LocalDateTime.now()
-                                val date: String = currentTime.year.toString() + "_" + currentTime.monthValue.toString() + "_" + currentTime.dayOfMonth.toString()
+                            Column(
+                                modifier = Modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally)
+                            {
+                                //DisplayTodayDate()
+                                InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
+                                    val currentTime = LocalDateTime.now()
+                                    val date: String = currentTime.year.toString() + "_" + currentTime.monthValue.toString() + "_" + currentTime.dayOfMonth.toString()
 
-                                //データベースに保存
-                                viewModel.saveRecord(date, todo1 = inputedtask1, todo2 = inputedtask2, todo3 = inputedtask3)
+                                    //データベースに保存
+                                    viewModel.saveRecord(date, todo1 = inputedtask1, todo2 = inputedtask2, todo3 = inputedtask3)
 
-                                //保存したらホーム画面に戻る
-                                navController.popBackStack()
-                            }, recordsMap1[currentDate] ?: TaskInfo(), recordsMap2[currentDate] ?: TaskInfo(), recordsMap3[currentDate] ?: TaskInfo())
+                                    //保存したらホーム画面に戻る
+                                    navController.popBackStack()
+                                }, recordsMap1[currentDate] ?: TaskInfo(), recordsMap2[currentDate] ?: TaskInfo(), recordsMap3[currentDate] ?: TaskInfo())
+                            }
                         }
                     }
                 }
             }
         }
-    }
-}
-
-//@Preview(showBackground = true)
-@Composable
-fun DailyGoals(goals: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("毎日の目標")
-        Text(goals)
     }
 }
 
@@ -219,8 +223,8 @@ class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
 fun NewRecord(onNavigate: () -> Unit) {
     Button(onClick = {
             onNavigate()
-        }, modifier = Modifier.padding(60.dp)) {
-        Text("新しい記録")
+        }, modifier = Modifier.padding(10.dp)) {
+        Text("目標を設定")
     }
 }
 
@@ -230,15 +234,20 @@ fun NewRecord(onNavigate: () -> Unit) {
 fun FiveDaysCalendar(recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String, TaskInfo>, recordsMap3: Map<String, TaskInfo>) { // 引数を追加
     val currentTime = LocalDateTime.now()
 
-    for (i in 0..4) {
-        val nextTime = currentTime.minusDays(i.toLong())
-        val nextDate: String = nextTime.year.toString() + "_" + nextTime.monthValue.toString() + "_" + nextTime.dayOfMonth.toString()
+    Column(
+        modifier = Modifier.padding(20.dp).size(width = 400.dp, height = 350.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        for (i in 1..4) {
+            val nextTime = currentTime.minusDays(i.toLong())
+            val nextDate: String = nextTime.year.toString() + "_" + nextTime.monthValue.toString() + "_" + nextTime.dayOfMonth.toString()
 
-        val oneDayRecord1: TaskInfo = recordsMap1[nextDate]?: TaskInfo()
-        val oneDayRecord2: TaskInfo = recordsMap2[nextDate]?: TaskInfo()
-        val oneDayRecord3: TaskInfo = recordsMap3[nextDate]?: TaskInfo()
+            val oneDayRecord1: TaskInfo = recordsMap1[nextDate]?: TaskInfo()
+            val oneDayRecord2: TaskInfo = recordsMap2[nextDate]?: TaskInfo()
+            val oneDayRecord3: TaskInfo = recordsMap3[nextDate]?: TaskInfo()
 
-        DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+            DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+        }
     }
 }
 
@@ -269,6 +278,8 @@ fun DayCalendar(
     val isDone3 = record3.isDone
     val count3 = record3.count
 
+    val fontSize = 18
+
 
     val checkInfo1: String = if (isDone1 == true){
         "☑"
@@ -288,16 +299,32 @@ fun DayCalendar(
     }
 
     Row(
-        horizontalArrangement = Arrangement.Center
+
     ){
-        Text(text = day.toString() + "日", modifier = Modifier.weight(0.1f))
-        Text(text = "( $dayOfWeek )", modifier = Modifier.weight(0.1f))
-        Text(text = "①", modifier = Modifier.weight(0.05f), fontSize = 20.sp)
-        Text(text = checkInfo1, modifier = Modifier.weight(0.1f), fontSize = 20.sp)
-        Text(text = "②", modifier = Modifier.weight(0.05f), fontSize = 20.sp)
-        Text(text = checkInfo2, modifier = Modifier.weight(0.1f), fontSize = 20.sp)
-        Text(text = "③", modifier = Modifier.weight(0.05f), fontSize = 20.sp)
-        Text(text = checkInfo3, modifier = Modifier.weight(0.1f), fontSize = 20.sp)
+        Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp), fontSize = fontSize.sp)
+        Column(
+            modifier = Modifier.size(width = 100.dp, height = 90.dp),
+            horizontalAlignment = Alignment.End
+        ) {
+            Row(modifier = Modifier.padding(0.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Text(text = checkInfo1, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
+                Text(text = taskName1 + "  " + count1 + " 回", fontSize = fontSize.sp)
+            }
+            Row(modifier = Modifier.padding(0.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Text(text = checkInfo2, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
+                Text(text = taskName2 + "  " + count2 + " 回", fontSize = fontSize.sp)
+            }
+            Row(modifier = Modifier.padding(0.5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Text(text = checkInfo3, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
+                Text(text = taskName3 + "  " + count3 + " 回", fontSize = fontSize.sp)
+            }
+        }
     }
 }
 
@@ -436,26 +463,27 @@ fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>,
     val taskInfo2 = recordsMap2[date] ?: TaskInfo()
     val taskInfo3 = recordsMap3[date] ?: TaskInfo()
 
-    Column (modifier = Modifier.padding(24.dp)) {
+    Column (
+        modifier = Modifier.size(width = 380.dp, height = 200.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    )
+    {
         Row(modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
             displayCheckBoxAndContent1(date,viewModel, taskInfo1, taskInfo2, taskInfo3)
-            Text(text = "①", fontSize = 20.sp)
             Text(text = taskInfo1.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
         }
         Row(modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
             displayCheckBoxAndContent2(date,viewModel, taskInfo1, taskInfo2, taskInfo3)
-            Text(text = "②", fontSize = 20.sp)
             Text(text = taskInfo2.taskName + "  " + taskInfo2.count + " 回", fontSize = 20.sp)
         }
         Row(modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
             displayCheckBoxAndContent3(date,viewModel, taskInfo1, taskInfo2, taskInfo3)
-            Text(text = "③", fontSize = 20.sp)
             Text(text = taskInfo3.taskName + "  " + taskInfo3.count + " 回", fontSize = 20.sp)
         }
     }
@@ -562,16 +590,16 @@ fun displayCheckBoxAndContent3(date: String, viewModel: MainViewModel, taskInfo1
 
 @SuppressLint("NewApi")
 @Composable
-fun DisplayTodayDate() {
+fun DisplayTodayDate(fontSize : Int) {
     val currentTime = LocalDateTime.now()
     val currentMonth = currentTime.monthValue
     val currentDay = currentTime.dayOfMonth
-    val dayOfWeek = currentTime.dayOfWeek.getDisplayName(
-        java.time.format.TextStyle.SHORT, // 「月曜」ならFULL、「月」ならSHORT
-        java.util.Locale.JAPANESE// 日本語を指定
-    )
+//    val dayOfWeek = currentTime.dayOfWeek.getDisplayName(
+//        java.time.format.TextStyle.SHORT, // 「月曜」ならFULL、「月」ならSHORT
+//        java.util.Locale.JAPANESE// 日本語を指定
+//    )
 
-    Text(text = "$currentMonth 月 $currentDay 日 ($dayOfWeek)", fontSize = 40.sp, modifier = Modifier.padding(40.dp))
+    Text(text = "$currentMonth 月 $currentDay 日", fontSize = fontSize.sp, modifier = Modifier.padding(40.dp))
 }
 
 ////プレビュー
