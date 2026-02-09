@@ -36,4 +36,14 @@ class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
             saveRecord(date, tasks[0], tasks[1], tasks[2])
         }
     }
+
+    // Map形式に変換
+    fun convertToMap(records: List<DailyRecord>): List<Map<String, TaskInfo>>{
+        val recordsMap1 = records.associate { it.date to it.todo1 }
+        val recordsMap2 = records.associate { it.date to it.todo2 }
+        val recordsMap3 = records.associate { it.date to it.todo3 }
+        val recordsMapList: List<Map<String, TaskInfo>> = listOf(recordsMap1, recordsMap2, recordsMap3)
+
+        return recordsMapList
+    }
 }

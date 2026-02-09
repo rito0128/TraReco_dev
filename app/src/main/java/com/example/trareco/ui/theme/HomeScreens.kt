@@ -38,14 +38,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.room.Room
-//import com.example.trareco.CheckToDo
-//import com.example.trareco.DailyToDo
-//import com.example.trareco.DateUtils
-//import com.example.trareco.DisplayTodayDate
-//import com.example.trareco.FiveDaysCalendar
-//import com.example.trareco.InputNewRecord
-//import com.example.trareco.NewRecord
-//import com.example.trareco.TakeOverToDo
 import java.time.LocalDateTime
 import java.time.format.TextStyle
 import java.util.Locale
@@ -80,12 +72,6 @@ class MainActivity : ComponentActivity() {
             val navController = androidx.navigation.compose.rememberNavController()
 
             val records by viewModel.allRecords.collectAsState(initial = emptyList())
-
-            // Map形式に変換しておくとカレンダーで使いやすい
-            val recordsMap1 = records.associate { it.date to it.todo1 }
-            val recordsMap2 = records.associate { it.date to it.todo2 }
-            val recordsMap3 = records.associate { it.date to it.todo3 }
-
             val currentDate = DateUtils.formatToKey(0)
 
             Surface(
@@ -106,7 +92,7 @@ class MainActivity : ComponentActivity() {
                         composable(route = DailyToDo.Home.name)
                         {
                             if (records.isNotEmpty()){
-                                TakeOverToDo(currentDate, viewModel, recordsMap1, recordsMap2, recordsMap3)
+                                TakeOverToDo(currentDate, viewModel, records)
                             }
 
                             Column(
@@ -115,8 +101,8 @@ class MainActivity : ComponentActivity() {
                             {
                                 DisplayTodayDate(fontSize = 35)
                                 //Box(modifier = Modifier.size(width = 400.dp, height = 100.dp).background(color = Color(0xFFFF0000))){}
-                                CheckToDo(currentDate, viewModel, records, recordsMap1,recordsMap2, recordsMap3)
-                                FiveDaysCalendar(recordsMap1 = recordsMap1, recordsMap2 = recordsMap2, recordsMap3 = recordsMap3)
+                                CheckToDo(currentDate, viewModel, records)
+                                FiveDaysCalendar(viewModel, records)
                                 NewRecord(onNavigate = {
                                     navController.navigate(DailyToDo.NewRecord.name)
                                 })
@@ -138,7 +124,7 @@ class MainActivity : ComponentActivity() {
 
                                     //保存したらホーム画面に戻る
                                     navController.popBackStack()
-                                }, recordsMap1[currentDate] ?: TaskInfo(), recordsMap2[currentDate] ?: TaskInfo(), recordsMap3[currentDate] ?: TaskInfo())
+                                }, viewModel, records, currentDate)
                             }
                         }
                     }
@@ -165,8 +151,9 @@ fun NewRecord(onNavigate: () -> Unit) {
 // FiveDaysCalendar 本体の修正
 @SuppressLint("NewApi")
 @Composable
-fun FiveDaysCalendar(recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String, TaskInfo>, recordsMap3: Map<String, TaskInfo>) { // 引数を追加
+fun FiveDaysCalendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val currentTime = LocalDateTime.now()
+    val recordsMapList = viewModel.convertToMap(records)
 
     Column(
         modifier = Modifier.padding(20.dp).size(width = 400.dp, height = 350.dp),
@@ -176,9 +163,9 @@ fun FiveDaysCalendar(recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String
             val nextTime = currentTime.minusDays(i.toLong())
             val nextDate = DateUtils.formatToKey(i)
 
-            val oneDayRecord1: TaskInfo = recordsMap1[nextDate]?: TaskInfo()
-            val oneDayRecord2: TaskInfo = recordsMap2[nextDate]?: TaskInfo()
-            val oneDayRecord3: TaskInfo = recordsMap3[nextDate]?: TaskInfo()
+            val oneDayRecord1: TaskInfo = recordsMapList[0][nextDate]?: TaskInfo()
+            val oneDayRecord2: TaskInfo = recordsMapList[1][nextDate]?: TaskInfo()
+            val oneDayRecord3: TaskInfo = recordsMapList[2][nextDate]?: TaskInfo()
 
             DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
         }
@@ -245,7 +232,14 @@ fun SingleToDo(record: TaskInfo){
 }
 
 @Composable
-fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, taskInfo1: TaskInfo, taskInfo2: TaskInfo, taskInfo3: TaskInfo) {
+fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewModel: MainViewModel, records:List<DailyRecord>, date: String) {
+
+    val recordsMapList = viewModel.convertToMap(records)
+
+    val taskInfo1 = recordsMapList[0][date] ?: TaskInfo()
+    val taskInfo2 = recordsMapList[1][date] ?: TaskInfo()
+    val taskInfo3 = recordsMapList[2][date] ?: TaskInfo()
+
     // 一つ目のタスク
     var text1 by remember { mutableStateOf(taskInfo1.taskName) }
     var count1 by remember { mutableStateOf(taskInfo1.count.toString()) }
@@ -369,34 +363,24 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, taskInfo
 }
 
 @Composable
-fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>, recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String, TaskInfo>, recordsMap3: Map<String, TaskInfo>){
+fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>){
 
-    val taskInfo1 = recordsMap1[date] ?: TaskInfo()
-    val taskInfo2 = recordsMap2[date] ?: TaskInfo()
-    val taskInfo3 = recordsMap3[date] ?: TaskInfo()
+    val recordsMapList = viewModel.convertToMap(records)
 
     Column (
         modifier = Modifier.size(width = 380.dp, height = 200.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-        Row(modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            DisplayCheckBox(date,viewModel, taskInfo1, 0)
-            Text(text = taskInfo1.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
-        }
-        Row(modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            DisplayCheckBox(date,viewModel, taskInfo2, 1)
-            Text(text = taskInfo2.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
-        }
-        Row(modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            DisplayCheckBox(date,viewModel, taskInfo3, 2)
-            Text(text = taskInfo3.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
+        for (i in 0..2) {
+            val taskInfo = recordsMapList[i][date] ?: TaskInfo()
+
+            Row(modifier = Modifier.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                DisplayCheckBox(date,viewModel, taskInfo, 0)
+                Text(text = taskInfo.taskName + "  " + taskInfo.count + " 回", fontSize = 20.sp)
+            }
         }
     }
 }
@@ -413,11 +397,13 @@ fun DisplayCheckBox(date: String, viewModel: MainViewModel, taskInfo: TaskInfo, 
 
 @Composable
 @SuppressLint("NewApi")
-fun TakeOverToDo(date: String, viewModel: MainViewModel, recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String, TaskInfo>, recordsMap3: Map<String, TaskInfo>){
+fun TakeOverToDo(date: String, viewModel: MainViewModel, records: List<DailyRecord>){
 
-    val taskInfo1 = recordsMap1[date] ?: TaskInfo()
-    val taskInfo2 = recordsMap2[date] ?: TaskInfo()
-    val taskInfo3 = recordsMap3[date] ?: TaskInfo()
+    val recordsMapList = viewModel.convertToMap(records)
+
+    val taskInfo1 = recordsMapList[0][date] ?: TaskInfo()
+    val taskInfo2 = recordsMapList[1][date] ?: TaskInfo()
+    val taskInfo3 = recordsMapList[2][date] ?: TaskInfo()
 
     LaunchedEffect(date) {
         val lastRecord = viewModel.getLastRecord()
