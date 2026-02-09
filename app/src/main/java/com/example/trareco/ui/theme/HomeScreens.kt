@@ -1,67 +1,59 @@
-package com.example.trareco
+package com.example.trareco.ui.theme
 
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.room.Room
+//import com.example.trareco.CheckToDo
+//import com.example.trareco.DailyToDo
+//import com.example.trareco.DateUtils
+//import com.example.trareco.DisplayTodayDate
+//import com.example.trareco.FiveDaysCalendar
+//import com.example.trareco.InputNewRecord
+//import com.example.trareco.NewRecord
+//import com.example.trareco.TakeOverToDo
 import java.time.LocalDateTime
 import java.time.format.TextStyle
 import java.util.Locale
-import androidx.navigation.compose.NavHost
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.lifecycle.ViewModel
-import androidx.navigation.compose.composable
-import androidx.room.Dao
-import androidx.room.Database
-import androidx.room.Delete
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.PrimaryKey
-import androidx.room.Query
-import androidx.room.RoomDatabase
-import kotlinx.coroutines.flow.Flow
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-import androidx.room.Room
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material3.TextField
-import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.setValue
-import androidx.room.Embedded
-import androidx.room.OnConflictStrategy
-import androidx.compose.material3.Checkbox
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.SystemBarStyle
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.LaunchedEffect
-
-import com.example.trareco.ui.theme.White
-import com.example.trareco.ui.theme.Gainsboro
-import androidx.compose.material3.Surface
-import androidx.compose.material3.MaterialTheme.colorScheme
-
+import com.example.trareco.data.AppDatabase
+import com.example.trareco.viewmodel.MainViewModel
+import com.example.trareco.data.TaskInfo
+import com.example.trareco.data.DailyRecord
+import com.example.trareco.utils.DateUtils
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -94,8 +86,7 @@ class MainActivity : ComponentActivity() {
             val recordsMap2 = records.associate { it.date to it.todo2 }
             val recordsMap3 = records.associate { it.date to it.todo3 }
 
-            val currentTime = LocalDateTime.now()
-            val currentDate: String = currentTime.year.toString() + "_" + currentTime.monthValue.toString() + "_" + currentTime.dayOfMonth.toString()
+            val currentDate = DateUtils.formatToKey(0)
 
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -114,6 +105,10 @@ class MainActivity : ComponentActivity() {
                         //ホーム画面
                         composable(route = DailyToDo.Home.name)
                         {
+                            if (records.isNotEmpty()){
+                                TakeOverToDo(currentDate, viewModel, recordsMap1, recordsMap2, recordsMap3)
+                            }
+
                             Column(
                                 modifier = Modifier,
                                 horizontalAlignment = Alignment.CenterHorizontally)
@@ -136,8 +131,7 @@ class MainActivity : ComponentActivity() {
                             {
                                 //DisplayTodayDate()
                                 InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
-                                    val currentTime = LocalDateTime.now()
-                                    val date: String = currentTime.year.toString() + "_" + currentTime.monthValue.toString() + "_" + currentTime.dayOfMonth.toString()
+                                    val date = DateUtils.formatToKey(0)
 
                                     //データベースに保存
                                     viewModel.saveRecord(date, todo1 = inputedtask1, todo2 = inputedtask2, todo3 = inputedtask3)
@@ -159,71 +153,11 @@ enum class DailyToDo() {
     NewRecord
 }
 
-data class TaskInfo(
-    val isDone: Boolean = false,
-    val taskName: String = "",
-    val count: Int = 0
-)
-
-//データエンティティ
-@Entity(tableName = "daily_records")
-data class DailyRecord(
-    @PrimaryKey val date: String,
-    @Embedded(prefix = "todo1_") val todo1: TaskInfo,
-    @Embedded(prefix = "todo2_") val todo2: TaskInfo,
-    @Embedded(prefix = "todo3_") val todo3: TaskInfo,
-)
-
-//データアクセスオブジェクト（DAO）
-@Dao
-interface DailyRecordDao {
-    //データの取得
-    @Query("SELECT * FROM daily_records")
-    fun loadAllUsers(): Flow<List<DailyRecord>>
-
-    //挿入
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addNewRecord(dailyRecord: DailyRecord)
-
-    //削除
-    @Delete
-    suspend fun deleteRecord(dailyRecord: DailyRecord)
-
-    //最新の記録を1件だけ取得する
-    @Query("SELECT * FROM daily_records ORDER BY date DESC LIMIT 1")
-    suspend fun getLastRecord(): DailyRecord?
-}
-
-//データベースオブジェクト
-@Database(entities = [DailyRecord::class], version = 1)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): DailyRecordDao
-}
-
-class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
-
-    // 全データを取得するFlow（自動更新対応）
-    val allRecords: Flow<List<DailyRecord>> = dao.loadAllUsers()
-
-    //データを保存する関数
-    fun saveRecord(date: String, todo1: TaskInfo, todo2: TaskInfo, todo3: TaskInfo) {
-        viewModelScope.launch {
-            val newRecord = DailyRecord(date = date, todo1 = todo1, todo2 = todo2, todo3 = todo3)
-            dao.addNewRecord(newRecord)
-        }
-    }
-
-    // 最新の1件を取得する関数（suspend）
-    suspend fun getLastRecord(): DailyRecord? {
-        return dao.getLastRecord()
-    }
-}
-
 @Composable
 fun NewRecord(onNavigate: () -> Unit) {
     Button(onClick = {
-            onNavigate()
-        }, modifier = Modifier.padding(10.dp)) {
+        onNavigate()
+    }, modifier = Modifier.padding(10.dp)) {
         Text("目標を設定")
     }
 }
@@ -240,7 +174,7 @@ fun FiveDaysCalendar(recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String
     ){
         for (i in 1..4) {
             val nextTime = currentTime.minusDays(i.toLong())
-            val nextDate: String = nextTime.year.toString() + "_" + nextTime.monthValue.toString() + "_" + nextTime.dayOfMonth.toString()
+            val nextDate = DateUtils.formatToKey(i)
 
             val oneDayRecord1: TaskInfo = recordsMap1[nextDate]?: TaskInfo()
             val oneDayRecord2: TaskInfo = recordsMap2[nextDate]?: TaskInfo()
@@ -258,49 +192,13 @@ fun DayCalendar(
     record1: TaskInfo,
     record2: TaskInfo,
     record3: TaskInfo,
-    )
+)
 {
-
-    val nextDate: String = nextTime.year.toString() + "_" + nextTime.monthValue.toString() + "_" + nextTime.dayOfMonth.toString()
     val dayOfWeek = nextTime.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.JAPANESE)
     val day = nextTime.dayOfMonth
-
-
-    val taskName1 = record1.taskName
-    val isDone1 = record1.isDone
-    val count1 = record1.count
-
-    val taskName2 = record2.taskName
-    val isDone2 = record2.isDone
-    val count2 = record2.count
-
-    val taskName3 = record3.taskName
-    val isDone3 = record3.isDone
-    val count3 = record3.count
-
     val fontSize = 18
 
-
-    val checkInfo1: String = if (isDone1 == true){
-        "☑"
-    } else {
-        "☐"
-    }
-
-    val checkInfo2: String = if (isDone2 == true){
-        "☑"
-    } else {
-        "☐"
-    }
-    val checkInfo3: String = if (isDone3 == true){
-        "☑"
-    } else {
-        "☐"
-    }
-
-    Row(
-
-    ){
+    Row(){
         Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp), fontSize = fontSize.sp)
         Column(
             modifier = Modifier.size(width = 100.dp, height = 90.dp),
@@ -309,22 +207,40 @@ fun DayCalendar(
             Row(modifier = Modifier.padding(0.5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
-                Text(text = checkInfo1, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
-                Text(text = taskName1 + "  " + count1 + " 回", fontSize = fontSize.sp)
+                SingleToDo(record1)
             }
             Row(modifier = Modifier.padding(0.5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
-                Text(text = checkInfo2, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
-                Text(text = taskName2 + "  " + count2 + " 回", fontSize = fontSize.sp)
+                SingleToDo(record2)
             }
             Row(modifier = Modifier.padding(0.5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
-                Text(text = checkInfo3, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
-                Text(text = taskName3 + "  " + count3 + " 回", fontSize = fontSize.sp)
+                SingleToDo(record3)
             }
         }
+    }
+}
+
+@Composable
+fun SingleToDo(record: TaskInfo){
+    val taskName = record.taskName
+    val isDone = record.isDone
+    val count = record.count
+    val checkInfo: String = if (isDone == true){
+        "☑"
+    } else {
+        "☐"
+    }
+
+    val fontSize = 18
+
+    Row(modifier = Modifier.padding(0.5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        Text(text = checkInfo, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
+        Text(text = taskName + "  " + count + " 回", fontSize = fontSize.sp)
     }
 }
 
@@ -455,10 +371,6 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, taskInfo
 @Composable
 fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>, recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String, TaskInfo>, recordsMap3: Map<String, TaskInfo>){
 
-    if (records.isNotEmpty()){
-        TakeOverToDo(date, viewModel, recordsMap1, recordsMap2, recordsMap3)
-    }
-
     val taskInfo1 = recordsMap1[date] ?: TaskInfo()
     val taskInfo2 = recordsMap2[date] ?: TaskInfo()
     val taskInfo3 = recordsMap3[date] ?: TaskInfo()
@@ -471,48 +383,33 @@ fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>,
         Row(modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
-            displayCheckBoxAndContent1(date,viewModel, taskInfo1, taskInfo2, taskInfo3)
+            DisplayCheckBox(date,viewModel, taskInfo1, 0)
             Text(text = taskInfo1.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
         }
         Row(modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
-            displayCheckBoxAndContent2(date,viewModel, taskInfo1, taskInfo2, taskInfo3)
-            Text(text = taskInfo2.taskName + "  " + taskInfo2.count + " 回", fontSize = 20.sp)
+            DisplayCheckBox(date,viewModel, taskInfo2, 1)
+            Text(text = taskInfo2.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
         }
         Row(modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
-            displayCheckBoxAndContent3(date,viewModel, taskInfo1, taskInfo2, taskInfo3)
-            Text(text = taskInfo3.taskName + "  " + taskInfo3.count + " 回", fontSize = 20.sp)
+            DisplayCheckBox(date,viewModel, taskInfo3, 2)
+            Text(text = taskInfo3.taskName + "  " + taskInfo1.count + " 回", fontSize = 20.sp)
         }
     }
 }
 
-//@Composable
-//@SuppressLint("NewApi")
-//fun TakeOverToDo(date: String, viewModel: MainViewModel, recordsMap1: Map<String, TaskInfo>, recordsMap2: Map<String, TaskInfo>, recordsMap3: Map<String, TaskInfo>){
-//
-//    val taskInfo1 = recordsMap1[date] ?: TaskInfo()
-//    val taskInfo2 = recordsMap2[date] ?: TaskInfo()
-//    val taskInfo3 = recordsMap3[date] ?: TaskInfo()
-//
-//    val currentTime = LocalDateTime.now()
-//    val previousTime = currentTime.minusDays(1)
-//    val previousDate: String = previousTime.year.toString() + "_" + previousTime.monthValue.toString() + "_" + previousTime.dayOfMonth.toString()
-//
-//    if ((taskInfo1.taskName == "") && (taskInfo2.taskName == "") && (taskInfo3.taskName == "")) {
-//        val previousTaskInfo1 = recordsMap1[previousDate] ?: TaskInfo()
-//        val previousTaskInfo2 = recordsMap2[previousDate] ?: TaskInfo()
-//        val previousTaskInfo3 = recordsMap3[previousDate] ?: TaskInfo()
-//
-//        val newTaskInfo1 = previousTaskInfo1.copy(isDone = false)
-//        val newTaskInfo2 = previousTaskInfo2.copy(isDone = false)
-//        val newTaskInfo3 = previousTaskInfo3.copy(isDone = false)
-//
-//        viewModel.saveRecord(date, todo1 = newTaskInfo1, todo2 = newTaskInfo2, todo3 = newTaskInfo3)
-//    }
-//}
+@Composable
+fun DisplayCheckBox(date: String, viewModel: MainViewModel, taskInfo: TaskInfo, taskIndex: Int){
+    Checkbox(
+        checked = taskInfo.isDone,
+        onCheckedChange = { isChecked ->
+            viewModel.checkToDo(date, isChecked, taskIndex)
+        }
+    )
+}
 
 @Composable
 @SuppressLint("NewApi")
@@ -537,83 +434,12 @@ fun TakeOverToDo(date: String, viewModel: MainViewModel, recordsMap1: Map<String
     }
 }
 
-@Composable
-fun displayCheckBoxAndContent1(date: String, viewModel: MainViewModel, taskInfo1: TaskInfo, taskInfo2: TaskInfo, taskInfo3: TaskInfo): Boolean{
-    var checkedState: Boolean by remember { mutableStateOf(taskInfo1.isDone) }
-    var changedToDo = taskInfo1
-
-    Checkbox(
-        checked = taskInfo1.isDone,
-        onCheckedChange = { isChecked ->
-            checkedState = isChecked
-            changedToDo = taskInfo1.copy(isDone = isChecked)
-            viewModel.saveRecord(date, todo1 = changedToDo, todo2 = taskInfo2, todo3 = taskInfo3)
-        }
-    )
-
-    return checkedState
-}
-
-@Composable
-fun displayCheckBoxAndContent2(date: String, viewModel: MainViewModel, taskInfo1: TaskInfo, taskInfo2: TaskInfo, taskInfo3: TaskInfo): Boolean{
-    var checkedState: Boolean by remember { mutableStateOf(taskInfo2.isDone) }
-    var changedToDo = taskInfo2
-
-    Checkbox(
-        checked = taskInfo2.isDone,
-        onCheckedChange = { isChecked ->
-            checkedState = isChecked
-            changedToDo = taskInfo2.copy(isDone = isChecked)
-            viewModel.saveRecord(date, todo1 = taskInfo1, todo2 = changedToDo, todo3 = taskInfo3)
-        }
-    )
-
-    return checkedState
-}
-
-@Composable
-fun displayCheckBoxAndContent3(date: String, viewModel: MainViewModel, taskInfo1: TaskInfo, taskInfo2: TaskInfo, taskInfo3: TaskInfo): Boolean{
-    var checkedState: Boolean by remember { mutableStateOf(taskInfo3.isDone) }
-    var changedToDo = taskInfo3
-
-    Checkbox(
-        checked = taskInfo3.isDone,
-        onCheckedChange = { isChecked ->
-            checkedState = isChecked
-            changedToDo = taskInfo3.copy(isDone = isChecked)
-            viewModel.saveRecord(date, todo1 = taskInfo1, todo2 = taskInfo2, todo3 = changedToDo)
-        }
-    )
-
-    return checkedState
-}
-
 @SuppressLint("NewApi")
 @Composable
 fun DisplayTodayDate(fontSize : Int) {
     val currentTime = LocalDateTime.now()
     val currentMonth = currentTime.monthValue
     val currentDay = currentTime.dayOfMonth
-//    val dayOfWeek = currentTime.dayOfWeek.getDisplayName(
-//        java.time.format.TextStyle.SHORT, // 「月曜」ならFULL、「月」ならSHORT
-//        java.util.Locale.JAPANESE// 日本語を指定
-//    )
 
     Text(text = "$currentMonth 月 $currentDay 日", fontSize = fontSize.sp, modifier = Modifier.padding(40.dp))
 }
-
-////プレビュー
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun DisplayBoxPreview() {
-//    Column(modifier = Modifier
-//        .fillMaxSize()
-//        .windowInsetsPadding(WindowInsets.safeDrawing),
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    )
-//    {
-//        DailyGoals(goals = "腹筋を100回やる")
-//        FiveDaysCalendar()
-//        NewRecord(onNavigate = {})
-//    }
-//}
