@@ -1,6 +1,7 @@
 package com.example.trareco.ui.theme
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import java.time.LocalDateTime
 import java.time.format.TextStyle
@@ -53,8 +55,8 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
-                android.graphics.Color.TRANSPARENT, // 背景を透明に
-                android.graphics.Color.TRANSPARENT  // ダークモード時の色
+                Color.TRANSPARENT, // 背景を透明に
+                Color.TRANSPARENT  // ダークモード時の色
             )
         )
 
@@ -69,7 +71,7 @@ class MainActivity : ComponentActivity() {
         val viewModel = MainViewModel(dao)
 
         setContent {
-            val navController = androidx.navigation.compose.rememberNavController()
+            val navController = rememberNavController()
 
             val records by viewModel.allRecords.collectAsState(initial = emptyList())
             val currentDate = DateUtils.formatToKey(0)
