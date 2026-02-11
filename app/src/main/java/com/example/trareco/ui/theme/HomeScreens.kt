@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
@@ -190,7 +191,7 @@ fun DayCalendar(
     Row(){
         Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp), fontSize = fontSize.sp)
         Column(
-            modifier = Modifier.size(width = 100.dp, height = 90.dp),
+            modifier = Modifier.size(width = 200.dp, height = 90.dp),
             horizontalAlignment = Alignment.End
         ) {
             Row(modifier = Modifier.padding(0.5.dp),
@@ -228,8 +229,8 @@ fun SingleToDo(record: TaskInfo){
     Row(modifier = Modifier.padding(0.5.dp),
         verticalAlignment = Alignment.CenterVertically
     ){
-        Text(text = checkInfo, modifier = Modifier.weight(0.1f), fontSize = fontSize.sp)
-        Text(text = taskName + "  " + count + " 回", fontSize = fontSize.sp)
+        Text(text = checkInfo, modifier = Modifier.width(30.dp), fontSize = fontSize.sp)
+        Text(text = taskName + "  " + count + " 回", modifier = Modifier.weight(1f).padding(start = 8.dp), textAlign = TextAlign.End , fontSize = fontSize.sp)
     }
 }
 
@@ -380,7 +381,7 @@ fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>)
             Row(modifier = Modifier.padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ){
-                DisplayCheckBox(date,viewModel, taskInfo, 0)
+                DisplayCheckBox(date,viewModel, taskInfo, i)
                 Text(text = taskInfo.taskName + "  " + taskInfo.count + " 回", fontSize = 20.sp)
             }
         }
