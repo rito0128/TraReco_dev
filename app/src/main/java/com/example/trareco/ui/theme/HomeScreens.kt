@@ -1,13 +1,13 @@
 package com.example.trareco.ui.theme
 
 import android.annotation.SuppressLint
-import android.graphics.Color
+import androidx.compose.ui.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
+//import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,7 +25,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +48,15 @@ import com.example.trareco.viewmodel.MainViewModel
 import com.example.trareco.data.TaskInfo
 import com.example.trareco.data.DailyRecord
 import com.example.trareco.utils.DateUtils
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.text.font.FontWeight
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -56,8 +64,8 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
-                Color.TRANSPARENT, // 背景を透明に
-                Color.TRANSPARENT  // ダークモード時の色
+                android.graphics.Color.TRANSPARENT, // 背景を透明に
+                android.graphics.Color.TRANSPARENT  // ダークモード時の色
             )
         )
 
@@ -95,28 +103,62 @@ class MainActivity : ComponentActivity() {
                         composable(route = DailyToDo.Home.name)
                         {
                             if (records.isNotEmpty()){
-                                TakeOverToDo(currentDate, viewModel, records)
+                                viewModel.TakeOverToDo(currentDate, viewModel, records)
                             }
 
                             Column(
-                                modifier = Modifier,
-                                horizontalAlignment = Alignment.CenterHorizontally)
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = 20.dp, end = 20.dp, top = 10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            )
                             {
-                                DisplayTodayDate(fontSize = 35)
-                                //Box(modifier = Modifier.size(width = 400.dp, height = 100.dp).background(color = Color(0xFFFF0000))){}
-                                CheckToDo(currentDate, viewModel, records)
-                                FiveDaysCalendar(viewModel, records)
-                                NewRecord(onNavigate = {
-                                    navController.navigate(DailyToDo.NewRecord.name)
-                                })
+                                Box(
+                                    //contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .weight(4.5f)
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .background(color = DarkOrange)
+                                ){
+                                    Column(
+                                        modifier = Modifier,
+                                        horizontalAlignment = Alignment.CenterHorizontally)
+                                    {
+                                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
+                                            DisplayTodayDate(fontSize = 35, White)
+                                        }
+                                        Box(modifier = Modifier
+                                            .weight(3f)
+                                            .background(color = White),
+                                            contentAlignment = Alignment.Center
+                                        ){
+                                            CheckToDo(currentDate, viewModel, records)
+                                        }
+                                    }
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(4.5f)
+                                        .padding(top = 20.dp)
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .background(color = White)
+                                ){
+                                    FiveDaysCalendar(viewModel, records)
+                                }
+                                Box(modifier = Modifier.weight(1f)){
+                                    NewRecord(onNavigate = { navController.navigate(DailyToDo.NewRecord.name) })
+                                }
                             }
                         }
+
                         //新しい記録
                         composable(route = DailyToDo.NewRecord.name)
                         {
                             Column(
-                                modifier = Modifier,
-                                horizontalAlignment = Alignment.CenterHorizontally)
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            )
                             {
                                 //DisplayTodayDate()
                                 InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
@@ -144,10 +186,12 @@ enum class DailyToDo() {
 
 @Composable
 fun NewRecord(onNavigate: () -> Unit) {
-    Button(onClick = {
-        onNavigate()
-    }, modifier = Modifier.padding(10.dp)) {
-        Text("目標を設定")
+    Button(
+        onClick = { onNavigate() },
+        modifier = Modifier.padding(10.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = DarkOrange, contentColor = Color.White)
+    ) {
+        Text("目標を設定", fontWeight = FontWeight.Bold, fontSize = 20.sp)
     }
 }
 
@@ -159,7 +203,9 @@ fun FiveDaysCalendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val recordsMapList = viewModel.convertToMap(records)
 
     Column(
-        modifier = Modifier.padding(20.dp).size(width = 400.dp, height = 350.dp),
+        modifier = Modifier
+            .padding(20.dp)
+            .size(width = 400.dp, height = 350.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         for (i in 1..4) {
@@ -230,7 +276,9 @@ fun SingleToDo(record: TaskInfo){
         verticalAlignment = Alignment.CenterVertically
     ){
         Text(text = checkInfo, modifier = Modifier.width(30.dp), fontSize = fontSize.sp)
-        Text(text = taskName + "  " + count + " 回", modifier = Modifier.weight(1f).padding(start = 8.dp), textAlign = TextAlign.End , fontSize = fontSize.sp)
+        Text(text = taskName + "  " + count + " 回", modifier = Modifier
+            .weight(1f)
+            .padding(start = 8.dp), textAlign = TextAlign.End , fontSize = fontSize.sp)
     }
 }
 
@@ -274,7 +322,17 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 value = text1,
                 onValueChange = { text1 = it },
                 label = { Text("タスク") },
-                modifier = Modifier.padding(8.dp).width(200.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(200.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF000000),
+                    unfocusedTextColor = Color(0xFF000000),
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = White,
+                    focusedIndicatorColor = DarkOrange,
+                    unfocusedIndicatorColor = DarkOrange
+                )
             )
             TextField(
                 value = count1,
@@ -285,7 +343,17 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 },
                 label = { Text("回数/時間") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.padding(8.dp).width(100.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(100.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF000000),
+                    unfocusedTextColor = Color(0xFF000000),
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = White,
+                    focusedIndicatorColor = DarkOrange,
+                    unfocusedIndicatorColor = DarkOrange
+                )
             )
         }
 
@@ -294,7 +362,17 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 value = text2,
                 onValueChange = { text2 = it },
                 label = { Text("タスク") },
-                modifier = Modifier.padding(8.dp).width(200.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(200.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF000000),
+                    unfocusedTextColor = Color(0xFF000000),
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = White,
+                    focusedIndicatorColor = DarkOrange,
+                    unfocusedIndicatorColor = DarkOrange
+                )
             )
             TextField(
                 value = count2,
@@ -305,7 +383,17 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 },
                 label = { Text("回数/時間") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.padding(8.dp).width(100.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(100.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF000000),
+                    unfocusedTextColor = Color(0xFF000000),
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = White,
+                    focusedIndicatorColor = DarkOrange,
+                    unfocusedIndicatorColor = DarkOrange
+                )
             )
         }
 
@@ -314,7 +402,17 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 value = text3,
                 onValueChange = { text3 = it },
                 label = { Text("タスク") },
-                modifier = Modifier.padding(8.dp).width(200.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(200.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF000000),
+                    unfocusedTextColor = Color(0xFF000000),
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = White,
+                    focusedIndicatorColor = DarkOrange,
+                    unfocusedIndicatorColor = DarkOrange
+                )
             )
             TextField(
                 value = count3,
@@ -325,7 +423,17 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 },
                 label = { Text("回数/時間") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.padding(8.dp).width(100.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(100.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color(0xFF000000),
+                    unfocusedTextColor = Color(0xFF000000),
+                    focusedContainerColor = White,
+                    unfocusedContainerColor = White,
+                    focusedIndicatorColor = DarkOrange,
+                    unfocusedIndicatorColor = DarkOrange
+                )
             )
         }
 
@@ -358,9 +466,11 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
                 if (text1.isNotBlank()){
                     onSaveClick(oneDayRecord1, oneDayRecord2, oneDayRecord3)
                 }
-            }
+            },
+            modifier = Modifier.padding(top = 5.dp, bottom = 5.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = DarkOrange, contentColor = Color.White)
         ) {
-            Text("保存")
+            Text("保存", fontSize = 20.sp)
         }
     }
 }
@@ -394,41 +504,20 @@ fun DisplayCheckBox(date: String, viewModel: MainViewModel, taskInfo: TaskInfo, 
         checked = taskInfo.isDone,
         onCheckedChange = { isChecked ->
             viewModel.checkToDo(date, isChecked, taskIndex)
-        }
+        },
+        colors = CheckboxDefaults.colors(
+            checkedColor = DarkOrange,
+            checkmarkColor = White
+        )
     )
 }
 
-@Composable
-@SuppressLint("NewApi")
-fun TakeOverToDo(date: String, viewModel: MainViewModel, records: List<DailyRecord>){
-
-    val recordsMapList = viewModel.convertToMap(records)
-
-    val taskInfo1 = recordsMapList[0][date] ?: TaskInfo()
-    val taskInfo2 = recordsMapList[1][date] ?: TaskInfo()
-    val taskInfo3 = recordsMapList[2][date] ?: TaskInfo()
-
-    LaunchedEffect(date) {
-        val lastRecord = viewModel.getLastRecord()
-
-        if ((taskInfo1.taskName == "") && (taskInfo2.taskName == "") && (taskInfo3.taskName == "")) {
-            if (lastRecord != null) {
-                val newTaskInfo1 = lastRecord.todo1.copy(isDone = false)
-                val newTaskInfo2 = lastRecord.todo2.copy(isDone = false)
-                val newTaskInfo3 = lastRecord.todo3.copy(isDone = false)
-
-                viewModel.saveRecord(date, todo1 = newTaskInfo1, todo2 = newTaskInfo2, todo3 = newTaskInfo3)
-            }
-        }
-    }
-}
-
 @SuppressLint("NewApi")
 @Composable
-fun DisplayTodayDate(fontSize : Int) {
+fun DisplayTodayDate(fontSize : Int, color: androidx.compose.ui.graphics.Color) {
     val currentTime = LocalDateTime.now()
     val currentMonth = currentTime.monthValue
     val currentDay = currentTime.dayOfMonth
 
-    Text(text = "$currentMonth 月 $currentDay 日", fontSize = fontSize.sp, modifier = Modifier.padding(40.dp))
+    Text(text = "$currentMonth 月 $currentDay 日", fontSize = fontSize.sp, color = color, fontWeight = FontWeight.Bold)
 }

@@ -1,5 +1,7 @@
 package com.example.trareco.viewmodel
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.trareco.data.DailyRecord
@@ -21,10 +23,10 @@ class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
         }
     }
 
-    // 最新の1件を取得する関数（suspend）
-    suspend fun getLastRecord(): DailyRecord? {
-        return dao.getLastRecord()
-    }
+//    // 最新の1件を取得する関数（suspend）
+//    suspend fun getLastRecord(): DailyRecord? {
+//        return dao.getLastRecord()
+//    }
 
     // todoのチェックを更新する
     fun checkToDo(date: String, isDone: Boolean, taskIndex: Int){
@@ -45,5 +47,29 @@ class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
         val recordsMapList: List<Map<String, TaskInfo>> = listOf(recordsMap1, recordsMap2, recordsMap3)
 
         return recordsMapList
+    }
+
+    @Composable
+    fun TakeOverToDo(date: String, viewModel: MainViewModel, records: List<DailyRecord>){
+
+        val recordsMapList = viewModel.convertToMap(records)
+
+        val taskInfo1 = recordsMapList[0][date] ?: TaskInfo()
+        val taskInfo2 = recordsMapList[1][date] ?: TaskInfo()
+        val taskInfo3 = recordsMapList[2][date] ?: TaskInfo()
+
+        LaunchedEffect(date){
+            val lastRecord = dao.getLastRecord()
+
+            if ((taskInfo1.taskName == "") && (taskInfo2.taskName == "") && (taskInfo3.taskName == "")) {
+                if (lastRecord != null) {
+                    val newTaskInfo1 = lastRecord.todo1.copy(isDone = false)
+                    val newTaskInfo2 = lastRecord.todo2.copy(isDone = false)
+                    val newTaskInfo3 = lastRecord.todo3.copy(isDone = false)
+
+                    viewModel.saveRecord(date, todo1 = newTaskInfo1, todo2 = newTaskInfo2, todo3 = newTaskInfo3)
+                }
+            }
+        }
     }
 }
