@@ -7,7 +7,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-//import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -195,7 +194,6 @@ fun NewRecord(onNavigate: () -> Unit) {
     }
 }
 
-// FiveDaysCalendar 本体の修正
 @SuppressLint("NewApi")
 @Composable
 fun FiveDaysCalendar(viewModel: MainViewModel, records:List<DailyRecord>) {
@@ -208,7 +206,7 @@ fun FiveDaysCalendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             .size(width = 400.dp, height = 350.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        for (i in 1..4) {
+        for (i in 1..3) {
             val nextTime = currentTime.minusDays(i.toLong())
             val nextDate = DateUtils.formatToKey(i)
 

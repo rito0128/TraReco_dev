@@ -12,7 +12,7 @@ import com.example.trareco.data.TaskInfo
 
 class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
 
-    // 全データを取得するFlow（自動更新対応）
+    // 全データを取得する
     val allRecords: Flow<List<DailyRecord>> = dao.loadAllUsers()
 
     //データを保存する関数
@@ -22,11 +22,6 @@ class MainViewModel(private val dao: DailyRecordDao) : ViewModel() {
             dao.addNewRecord(newRecord)
         }
     }
-
-//    // 最新の1件を取得する関数（suspend）
-//    suspend fun getLastRecord(): DailyRecord? {
-//        return dao.getLastRecord()
-//    }
 
     // todoのチェックを更新する
     fun checkToDo(date: String, isDone: Boolean, taskIndex: Int){

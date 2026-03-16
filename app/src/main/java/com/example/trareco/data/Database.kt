@@ -44,7 +44,7 @@ interface DailyRecordDao {
     @Delete
     suspend fun deleteRecord(dailyRecord: DailyRecord)
 
-    // 【修正】特定の日付のデータを取得するクエリを追加（チェック更新用）
+    //特定の日付のデータを取得するクエリを追加（チェック更新用）
     @Query("SELECT * FROM daily_records WHERE date = :date")
     suspend fun getRecordByDate(date: String): DailyRecord?
 
