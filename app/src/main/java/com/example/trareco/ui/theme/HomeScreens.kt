@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(color = White)
                                 ){
-                                    FiveDaysCalendar(viewModel, records)
+                                    Calendar(viewModel, records)
                                 }
                                 Box(modifier = Modifier.weight(1f)){
                                     NewRecord(onNavigate = { navController.navigate(DailyToDo.NewRecord.name) })
@@ -196,7 +196,7 @@ fun NewRecord(onNavigate: () -> Unit) {
 
 @SuppressLint("NewApi")
 @Composable
-fun FiveDaysCalendar(viewModel: MainViewModel, records:List<DailyRecord>) {
+fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val currentTime = LocalDateTime.now()
     val recordsMapList = viewModel.convertToMap(records)
 
@@ -206,7 +206,7 @@ fun FiveDaysCalendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             .size(width = 400.dp, height = 350.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        for (i in 1..3) {
+        for (i in 0..2) {
             val nextTime = currentTime.minusDays(i.toLong())
             val nextDate = DateUtils.formatToKey(i)
 
@@ -232,23 +232,25 @@ fun DayCalendar(
     val day = nextTime.dayOfMonth
     val fontSize = 18
 
-    Row(){
-        Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp), fontSize = fontSize.sp)
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ){
+        Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp).width(110.dp), fontSize = fontSize.sp)
         Column(
             modifier = Modifier.size(width = 200.dp, height = 90.dp),
             horizontalAlignment = Alignment.End
         ) {
-            Row(modifier = Modifier.padding(0.5.dp),
+            Row(modifier = Modifier.padding(0.5.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ){
                 SingleToDo(record1)
             }
-            Row(modifier = Modifier.padding(0.5.dp),
+            Row(modifier = Modifier.padding(0.5.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ){
                 SingleToDo(record2)
             }
-            Row(modifier = Modifier.padding(0.5.dp),
+            Row(modifier = Modifier.padding(0.5.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ){
                 SingleToDo(record3)
@@ -259,7 +261,8 @@ fun DayCalendar(
 
 @Composable
 fun SingleToDo(record: TaskInfo){
-    val taskName = record.taskName
+    val taskName = record.taskName.take(5)
+//    val chunkedTaskNames = taskName.take(5)
     val isDone = record.isDone
     val count = record.count
     val checkInfo: String = if (isDone == true){
@@ -270,13 +273,15 @@ fun SingleToDo(record: TaskInfo){
 
     val fontSize = 18
 
-    Row(modifier = Modifier.padding(0.5.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Row(
+        horizontalArrangement = Arrangement.End
     ){
-        Text(text = checkInfo, modifier = Modifier.width(30.dp), fontSize = fontSize.sp)
-        Text(text = taskName + "  " + count + " 回", modifier = Modifier
-            .weight(1f)
-            .padding(start = 8.dp), textAlign = TextAlign.End , fontSize = fontSize.sp)
+        Text(text = checkInfo, modifier = Modifier.width(30.dp)
+            , textAlign = TextAlign.Center, fontSize = fontSize.sp)
+        Text(text = taskName, modifier = Modifier.width(90.dp)
+            , textAlign = TextAlign.End , fontSize = fontSize.sp)
+        Text(text = count.toString() + "回", modifier = Modifier.padding(start = 10.dp).width(60.dp)
+            , textAlign = TextAlign.End, fontSize = fontSize.sp)
     }
 }
 
@@ -480,17 +485,19 @@ fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>)
 
     Column (
         modifier = Modifier.size(width = 380.dp, height = 200.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        //horizontalAlignment = Alignment.CenterHorizontally
     )
     {
         for (i in 0..2) {
             val taskInfo = recordsMapList[i][date] ?: TaskInfo()
 
-            Row(modifier = Modifier.padding(8.dp),
+            Row(modifier = Modifier.padding(start = 40.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ){
                 DisplayCheckBox(date,viewModel, taskInfo, i)
-                Text(text = taskInfo.taskName + "  " + taskInfo.count + " 回", fontSize = 20.sp)
+                Text(text = taskInfo.taskName.take(7), fontSize = 20.sp, modifier = Modifier.weight(1f))
+                Text(text = taskInfo.count.toString() + " 回", modifier = Modifier.padding(end = 40.dp), fontSize = 20.sp)
             }
         }
     }

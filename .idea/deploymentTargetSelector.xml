@@ -7,11 +7,11 @@
       </SelectionState>
       <SelectionState runConfigName="apptest1">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-03-15T15:27:49.818791900Z">
+        <DropdownSelection timestamp="2026-03-25T15:04:29.768624Z">
           <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\a24k0\.android\avd\Pixel_9a.avd" />
-            </handle>
+            <template>
+              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=tegu/35" />
+            </template>
           </Target>
         </DropdownSelection>
         <DialogSelection>
