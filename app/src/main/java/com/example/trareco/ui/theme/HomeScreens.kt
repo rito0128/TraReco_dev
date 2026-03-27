@@ -56,6 +56,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -203,10 +205,11 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     Column(
         modifier = Modifier
             .padding(20.dp)
-            .size(width = 400.dp, height = 350.dp),
+            .size(width = 400.dp, height = 350.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        for (i in 0..2) {
+        for (i in 0..10) {
             val nextTime = currentTime.minusDays(i.toLong())
             val nextDate = DateUtils.formatToKey(i)
 
