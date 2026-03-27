@@ -58,6 +58,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.foundation.layout.height
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -86,91 +89,108 @@ class MainActivity : ComponentActivity() {
             val records by viewModel.allRecords.collectAsState(initial = emptyList())
             val currentDate = DateUtils.formatToKey(0)
 
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                //color = MaterialTheme.colorScheme.background
-                color = Gainsboro// <----動的にしたい
-            ){
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
-                )
-                {
-                    NavHost(navController = navController,
-                        startDestination = DailyToDo.Home.name,
-                        modifier = Modifier.padding())
-                    {
-                        //ホーム画面
-                        composable(route = DailyToDo.Home.name)
-                        {
-                            if (records.isNotEmpty()){
-                                viewModel.TakeOverToDo(currentDate, viewModel, records)
-                            }
+            Scaffold(
+                bottomBar = {
+                    BottomAppBar(
+                        modifier = Modifier.height(90.dp)
+                    ) {
 
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(start = 20.dp, end = 20.dp, top = 10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            )
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            text = "Bottom app bar",
+                        )
+                    }
+                }
+            )
+            { innerPadding ->
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    //color = MaterialTheme.colorScheme.background
+                    color = Gainsboro// <----動的にしたい
+                ){
+                    Column(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
+                    )
+                    {
+                        NavHost(navController = navController,
+                            startDestination = DailyToDo.Home.name,
+                            modifier = Modifier.padding())
+                        {
+                            //ホーム画面
+                            composable(route = DailyToDo.Home.name)
                             {
-                                Box(
-                                    //contentAlignment = Alignment.Center,
+                                if (records.isNotEmpty()){
+                                    viewModel.TakeOverToDo(currentDate, viewModel, records)
+                                }
+
+                                Column(
                                     modifier = Modifier
-                                        .weight(4.5f)
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(color = DarkOrange)
-                                ){
-                                    Column(
-                                        modifier = Modifier,
-                                        horizontalAlignment = Alignment.CenterHorizontally)
-                                    {
-                                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
-                                            DisplayTodayDate(fontSize = 35, White)
-                                        }
-                                        Box(modifier = Modifier
-                                            .weight(3f)
-                                            .background(color = White),
-                                            contentAlignment = Alignment.Center
-                                        ){
-                                            CheckToDo(currentDate, viewModel, records)
+                                        .fillMaxSize()
+                                        .padding(start = 20.dp, end = 20.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                )
+                                {
+                                    Box(
+                                        //contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .weight(4.2f)
+                                            .clip(RoundedCornerShape(24.dp))
+                                            .background(color = DarkOrange)
+                                    ){
+                                        Column(
+                                            modifier = Modifier,
+                                            horizontalAlignment = Alignment.CenterHorizontally)
+                                        {
+                                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
+                                                DisplayTodayDate(fontSize = 35, White)
+                                            }
+                                            Box(modifier = Modifier
+                                                .weight(3f)
+                                                .background(color = White),
+                                                contentAlignment = Alignment.Center
+                                            ){
+                                                CheckToDo(currentDate, viewModel, records)
+                                            }
                                         }
                                     }
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .weight(4.5f)
-                                        .padding(top = 20.dp)
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(color = White)
-                                ){
-                                    Calendar(viewModel, records)
-                                }
-                                Box(modifier = Modifier.weight(1f)){
-                                    NewRecord(onNavigate = { navController.navigate(DailyToDo.NewRecord.name) })
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(4.8f)
+                                            .padding(top = 20.dp)
+                                            .clip(RoundedCornerShape(24.dp))
+                                            .background(color = White)
+                                    ){
+                                        Calendar(viewModel, records)
+                                    }
+                                    Box(modifier = Modifier.weight(1f).padding(top = 20.dp)) {
+                                        NewRecord(onNavigate = { navController.navigate(DailyToDo.NewRecord.name) })
+                                    }
                                 }
                             }
-                        }
 
-                        //新しい記録
-                        composable(route = DailyToDo.NewRecord.name)
-                        {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            )
+                            //新しい記録
+                            composable(route = DailyToDo.NewRecord.name)
                             {
-                                //DisplayTodayDate()
-                                InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
-                                    val date = DateUtils.formatToKey(0)
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                )
+                                {
+                                    //DisplayTodayDate()
+                                    InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
+                                        val date = DateUtils.formatToKey(0)
 
-                                    //データベースに保存
-                                    viewModel.saveRecord(date, todo1 = inputedtask1, todo2 = inputedtask2, todo3 = inputedtask3)
+                                        //データベースに保存
+                                        viewModel.saveRecord(date, todo1 = inputedtask1, todo2 = inputedtask2, todo3 = inputedtask3)
 
-                                    //保存したらホーム画面に戻る
-                                    navController.popBackStack()
-                                }, viewModel, records, currentDate)
+                                        //保存したらホーム画面に戻る
+                                        navController.popBackStack()
+                                    }, viewModel, records, currentDate)
+                                }
                             }
                         }
                     }
@@ -189,7 +209,6 @@ enum class DailyToDo() {
 fun NewRecord(onNavigate: () -> Unit) {
     Button(
         onClick = { onNavigate() },
-        modifier = Modifier.padding(10.dp),
         colors = ButtonDefaults.buttonColors(containerColor = DarkOrange, contentColor = Color.White)
     ) {
         Text("目標を設定", fontWeight = FontWeight.Bold, fontSize = 20.sp)
@@ -486,10 +505,7 @@ fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>)
 
     val recordsMapList = viewModel.convertToMap(records)
 
-    Column (
-        modifier = Modifier.size(width = 380.dp, height = 200.dp),
-        //horizontalAlignment = Alignment.CenterHorizontally
-    )
+    Column ()
     {
         for (i in 0..2) {
             val taskInfo = recordsMapList[i][date] ?: TaskInfo()
@@ -529,3 +545,4 @@ fun DisplayTodayDate(fontSize : Int, color: androidx.compose.ui.graphics.Color) 
 
     Text(text = "$currentMonth 月 $currentDay 日", fontSize = fontSize.sp, color = color, fontWeight = FontWeight.Bold)
 }
+
