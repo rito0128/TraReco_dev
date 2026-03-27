@@ -49,6 +49,7 @@ import com.example.trareco.data.DailyRecord
 import com.example.trareco.utils.DateUtils
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.draw.clip
@@ -61,6 +62,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.painterResource
+import com.example.trareco.R
+import androidx.compose.foundation.interaction.MutableInteractionSource
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -92,14 +98,33 @@ class MainActivity : ComponentActivity() {
             Scaffold(
                 bottomBar = {
                     BottomAppBar(
-                        modifier = Modifier.height(90.dp)
+                        modifier = Modifier.height(90.dp),
+                        containerColor = White
                     ) {
-
-                        Text(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            text = "Bottom app bar",
-                        )
+                        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically){
+                            Box(modifier = Modifier
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },//ボタンの状態を渡す
+                                    indication = null//ボタンを押したときのアニメーションを失くす
+                                )
+                                {
+                                    navController.navigate(DailyToDo.Home.name)
+                                }
+                                .weight(1f), contentAlignment = Alignment.Center){
+                                DisplayIconAndText("ホーム", icon = R.drawable.house)
+                            }
+                            Box(modifier = Modifier
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },//ボタンの状態を渡す
+                                    indication = null//ボタンを押したときのアニメーションを失くす
+                                )
+                                {
+                                    //遷移先のルートを書く
+                                }
+                                .weight(1f), contentAlignment = Alignment.Center){
+                                DisplayIconAndText("カレンダー", icon = R.drawable.calendar_1)
+                            }
+                        }
                     }
                 }
             )
@@ -180,7 +205,6 @@ class MainActivity : ComponentActivity() {
                                     verticalArrangement = Arrangement.Center
                                 )
                                 {
-                                    //DisplayTodayDate()
                                     InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
                                         val date = DateUtils.formatToKey(0)
 
@@ -544,5 +568,25 @@ fun DisplayTodayDate(fontSize : Int, color: androidx.compose.ui.graphics.Color) 
     val currentDay = currentTime.dayOfMonth
 
     Text(text = "$currentMonth 月 $currentDay 日", fontSize = fontSize.sp, color = color, fontWeight = FontWeight.Bold)
+}
+
+@Composable
+fun BottomNavigationBarOriginal(){
+    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically){
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
+            DisplayIconAndText("ホーム", icon = R.drawable.house)
+        }
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
+            DisplayIconAndText("カレンダー", icon = R.drawable.calendar_1)
+        }
+    }
+}
+
+@Composable
+fun DisplayIconAndText(text : String, icon : Int){
+    Column(horizontalAlignment = Alignment.CenterHorizontally){
+        Image(painter = painterResource(icon), contentDescription = text)
+        Text(text = text, textAlign = TextAlign.Center, fontSize = 8.sp)
+    }
 }
 
