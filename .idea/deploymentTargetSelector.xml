@@ -7,11 +7,11 @@
       </SelectionState>
       <SelectionState runConfigName="apptest1">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-03-27T16:02:50.217826600Z">
+        <DropdownSelection timestamp="2026-03-28T13:56:15.276193500Z">
           <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=57061JEBF05915" />
-            </handle>
+            <template>
+              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=tegu/35" />
+            </template>
           </Target>
         </DropdownSelection>
         <DialogSelection>

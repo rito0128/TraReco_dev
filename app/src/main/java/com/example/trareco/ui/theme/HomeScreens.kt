@@ -67,6 +67,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import com.example.trareco.R
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.Icon
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material3.HorizontalDivider
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -95,6 +98,9 @@ class MainActivity : ComponentActivity() {
             val records by viewModel.allRecords.collectAsState(initial = emptyList())
             val currentDate = DateUtils.formatToKey(0)
 
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
             Scaffold(
                 bottomBar = {
                     BottomAppBar(
@@ -110,8 +116,16 @@ class MainActivity : ComponentActivity() {
                                 {
                                     navController.navigate(DailyToDo.Home.name)
                                 }
-                                .weight(1f), contentAlignment = Alignment.Center){
-                                DisplayIconAndText("ホーム", icon = R.drawable.house)
+                                .weight(1f), contentAlignment = Alignment.Center)
+                            {
+                                DisplayIconAndText("ホーム", icon = R.drawable.house,
+                                    isClicked =
+                                    if (currentRoute == DailyToDo.Home.name) {
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                )
                             }
                             Box(modifier = Modifier
                                 .clickable(
@@ -119,10 +133,18 @@ class MainActivity : ComponentActivity() {
                                     indication = null//ボタンを押したときのアニメーションを失くす
                                 )
                                 {
-                                    //遷移先のルートを書く
+                                    navController.navigate(DailyToDo.Calendar.name)
                                 }
-                                .weight(1f), contentAlignment = Alignment.Center){
-                                DisplayIconAndText("カレンダー", icon = R.drawable.calendar_1)
+                                .weight(1f), contentAlignment = Alignment.Center)
+                            {
+                                DisplayIconAndText("カレンダー", icon = R.drawable.calendar_1,
+                                    isClicked =
+                                    if (currentRoute == DailyToDo.Calendar.name) {
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                )
                             }
                         }
                     }
@@ -173,6 +195,8 @@ class MainActivity : ComponentActivity() {
                                                 DisplayTodayDate(fontSize = 35, White)
                                             }
                                             Box(modifier = Modifier
+                                                .padding(10.dp)
+                                                .clip(RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 20.dp, bottomEnd = 20.dp))
                                                 .weight(3f)
                                                 .background(color = White),
                                                 contentAlignment = Alignment.Center
@@ -199,11 +223,7 @@ class MainActivity : ComponentActivity() {
                             //新しい記録
                             composable(route = DailyToDo.NewRecord.name)
                             {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                )
+                                Column()
                                 {
                                     InputNewRecord(onSaveClick = { inputedtask1, inputedtask2, inputedtask3 ->
                                         val date = DateUtils.formatToKey(0)
@@ -216,6 +236,12 @@ class MainActivity : ComponentActivity() {
                                     }, viewModel, records, currentDate)
                                 }
                             }
+
+                            // カレンダー
+                            composable(route = DailyToDo.Calendar.name)
+                            {
+                                //カレンダーを実装しよう
+                            }
                         }
                     }
                 }
@@ -226,7 +252,8 @@ class MainActivity : ComponentActivity() {
 
 enum class DailyToDo() {
     Home,
-    NewRecord
+    NewRecord,
+    Calendar
 }
 
 @Composable
@@ -252,6 +279,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
+        Text(text = "記録", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp).fillMaxWidth(), textAlign = TextAlign.Start)
         for (i in 0..10) {
             val nextTime = currentTime.minusDays(i.toLong())
             val nextDate = DateUtils.formatToKey(i)
@@ -261,6 +289,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             val oneDayRecord3: TaskInfo = recordsMapList[2][nextDate]?: TaskInfo()
 
             DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+            HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
         }
     }
 }
@@ -325,7 +354,7 @@ fun SingleToDo(record: TaskInfo){
         Text(text = checkInfo, modifier = Modifier.width(30.dp)
             , textAlign = TextAlign.Center, fontSize = fontSize.sp)
         Text(text = taskName, modifier = Modifier.width(90.dp)
-            , textAlign = TextAlign.End , fontSize = fontSize.sp)
+            , textAlign = TextAlign.Start , fontSize = fontSize.sp)
         Text(text = count.toString() + "回", modifier = Modifier.padding(start = 10.dp).width(60.dp)
             , textAlign = TextAlign.End, fontSize = fontSize.sp)
     }
@@ -364,8 +393,7 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
     val isDone3: Boolean = taskInfo3.isDone
     var oneDayRecord3 = TaskInfo()
 
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Row(horizontalArrangement = Arrangement.Center){
             TextField(
                 value = text1,
@@ -526,7 +554,6 @@ fun InputNewRecord(onSaveClick: (TaskInfo, TaskInfo, TaskInfo) -> Unit, viewMode
 
 @Composable
 fun CheckToDo(date: String, viewModel: MainViewModel, records:List<DailyRecord>){
-
     val recordsMapList = viewModel.convertToMap(records)
 
     Column ()
@@ -571,10 +598,15 @@ fun DisplayTodayDate(fontSize : Int, color: androidx.compose.ui.graphics.Color) 
 }
 
 @Composable
-fun DisplayIconAndText(text : String, icon : Int){
+fun DisplayIconAndText(text : String, icon : Int, isClicked : Boolean){
     Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Image(painter = painterResource(icon), contentDescription = text)
-        Text(text = text, textAlign = TextAlign.Center, fontSize = 8.sp)
+        // Image(painter = painterResource(icon), contentDescription = text)
+        var color = Color(0xFF000000)
+        if (isClicked == true) {
+            color = DarkOrange
+        }
+        Icon(painter = painterResource(icon), contentDescription = text, tint = color)
+        Text(text = text, textAlign = TextAlign.Center, fontSize = 8.sp, color = color, fontWeight = FontWeight.Bold)
     }
 }
 
