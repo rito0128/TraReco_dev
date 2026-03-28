@@ -571,18 +571,6 @@ fun DisplayTodayDate(fontSize : Int, color: androidx.compose.ui.graphics.Color) 
 }
 
 @Composable
-fun BottomNavigationBarOriginal(){
-    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically){
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
-            DisplayIconAndText("ホーム", icon = R.drawable.house)
-        }
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center){
-            DisplayIconAndText("カレンダー", icon = R.drawable.calendar_1)
-        }
-    }
-}
-
-@Composable
 fun DisplayIconAndText(text : String, icon : Int){
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         Image(painter = painterResource(icon), contentDescription = text)
