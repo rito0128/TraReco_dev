@@ -241,6 +241,7 @@ class MainActivity : ComponentActivity() {
                             composable(route = DailyToDo.Calendar.name)
                             {
                                 //カレンダーを実装しよう
+                                OneMonth()
                             }
                         }
                     }
