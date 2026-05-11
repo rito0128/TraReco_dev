@@ -289,7 +289,16 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             val oneDayRecord2: TaskInfo = recordsMapList[1][nextDate]?: TaskInfo()
             val oneDayRecord3: TaskInfo = recordsMapList[2][nextDate]?: TaskInfo()
 
-            DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+            Box (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable{
+
+                    }
+            )
+            {
+                DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+            }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
         }
     }
