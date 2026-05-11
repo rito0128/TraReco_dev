@@ -70,6 +70,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Icon
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.window.Dialog
 
 @SuppressLint("NewApi")
@@ -275,6 +276,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val recordsMapList = viewModel.convertToMap(records)
 
     var showDialog by remember { mutableStateOf(false) } // ダイアログの表示用フラグ
+    var selectedDate by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -285,7 +287,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     ){
 
         if (showDialog) {
-            DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false})
+            DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDate)
         }
 
         Text(text = "記録", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp).fillMaxWidth(), textAlign = TextAlign.Start)
@@ -300,7 +302,10 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             Box (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable{showDialog = true}
+                    .clickable{
+                        showDialog = true
+                        selectedDate = nextDate
+                    }
             )
             {
                 DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
@@ -627,8 +632,18 @@ fun DisplayIconAndText(text : String, icon : Int, isClicked : Boolean){
 }
 
 @Composable
-fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit) {
+fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, selectedDate: String) {
     Dialog(onDismissRequest = { onDismissRequest() }) {
-        Text(text = "ダイアログだよ")
+        Box (modifier = Modifier
+            .size(width = 400.dp, height = 350.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(color = White)
+        ) {
+            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally)
+            {
+                Text(text = "ダイアログだよ")
+                Text(text = selectedDate)
+            }
+        }
     }
 }
