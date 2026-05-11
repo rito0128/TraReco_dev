@@ -70,6 +70,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Icon
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.window.Dialog
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -273,6 +274,8 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val currentTime = LocalDateTime.now()
     val recordsMapList = viewModel.convertToMap(records)
 
+    var showDialog by remember { mutableStateOf(false) } // ダイアログの表示用フラグ
+
     Column(
         modifier = Modifier
             .padding(20.dp)
@@ -280,6 +283,11 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
+
+        if (showDialog) {
+            DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false})
+        }
+
         Text(text = "記録", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp).fillMaxWidth(), textAlign = TextAlign.Start)
         for (i in 0..10) {
             val nextTime = currentTime.minusDays(i.toLong())
@@ -292,9 +300,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             Box (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable{
-
-                    }
+                    .clickable{showDialog = true}
             )
             {
                 DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
@@ -620,3 +626,9 @@ fun DisplayIconAndText(text : String, icon : Int, isClicked : Boolean){
     }
 }
 
+@Composable
+fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit) {
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Text(text = "ダイアログだよ")
+    }
+}
