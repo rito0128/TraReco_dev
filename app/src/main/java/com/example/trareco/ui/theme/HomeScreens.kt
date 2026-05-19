@@ -276,7 +276,8 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val recordsMapList = viewModel.convertToMap(records)
 
     var showDialog by remember { mutableStateOf(false) } // ダイアログの表示用フラグ
-    var selectedDate by remember { mutableStateOf("") }
+    var selectedDay: Int by remember { mutableStateOf(999) }
+    var selecteDayOfWeek: String by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -287,7 +288,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     ){
 
         if (showDialog) {
-            DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDate)
+            DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDay, selecteDayOfWeek, viewModel, records)
         }
 
         Text(text = "記録", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp).fillMaxWidth(), textAlign = TextAlign.Start)
@@ -304,7 +305,8 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
                     .fillMaxWidth()
                     .clickable{
                         showDialog = true
-                        selectedDate = nextDate
+                        selecteDayOfWeek = nextTime.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.JAPANESE)
+                        selectedDay = nextTime.dayOfMonth
                     }
             )
             {
@@ -632,7 +634,10 @@ fun DisplayIconAndText(text : String, icon : Int, isClicked : Boolean){
 }
 
 @Composable
-fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, selectedDate: String) {
+fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek: String, viewModel: MainViewModel, records:List<DailyRecord>) {
+    val fontSize = 18
+    val dayDate = DateUtils.formatToKey(0)
+
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Box (modifier = Modifier
             .size(width = 400.dp, height = 350.dp)
@@ -641,9 +646,12 @@ fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, selectedDate: String
         ) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally)
             {
-                Text(text = "ダイアログだよ")
-                Text(text = selectedDate)
+                Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp).width(110.dp), fontSize = fontSize.sp)
+                CheckToDo(date = dayDate, viewModel = viewModel, records = records)
             }
         }
     }
 }
+
+// ↑　dateを引数にもってくる
+// CheckToDoを任意の日付で呼び出す
