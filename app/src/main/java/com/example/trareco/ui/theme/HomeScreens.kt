@@ -278,6 +278,11 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     var showDialog by remember { mutableStateOf(false) } // ダイアログの表示用フラグ
     var selectedDay: Int by remember { mutableStateOf(999) }
     var selecteDayOfWeek: String by remember { mutableStateOf("") }
+    var index = 0
+
+    if (showDialog) {
+        DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDay, selecteDayOfWeek, viewModel, records, index)
+    }
 
     Column(
         modifier = Modifier
@@ -286,11 +291,6 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-
-        if (showDialog) {
-            DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDay, selecteDayOfWeek, viewModel, records)
-        }
-
         Text(text = "記録", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 5.dp).fillMaxWidth(), textAlign = TextAlign.Start)
         for (i in 0..10) {
             val nextTime = currentTime.minusDays(i.toLong())
@@ -307,6 +307,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
                         showDialog = true
                         selecteDayOfWeek = nextTime.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.JAPANESE)
                         selectedDay = nextTime.dayOfMonth
+                        index = i
                     }
             )
             {
@@ -634,9 +635,9 @@ fun DisplayIconAndText(text : String, icon : Int, isClicked : Boolean){
 }
 
 @Composable
-fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek: String, viewModel: MainViewModel, records:List<DailyRecord>) {
+fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek: String, viewModel: MainViewModel, records:List<DailyRecord>, index: Int) {
     val fontSize = 18
-    val dayDate = DateUtils.formatToKey(0)
+    val dayDate = DateUtils.formatToKey(index)
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Box (modifier = Modifier
@@ -653,5 +654,4 @@ fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek:
     }
 }
 
-// ↑　dateを引数にもってくる
-// CheckToDoを任意の日付で呼び出す
+// どの日付からダイアログにアクセスしても、最新の日付のデータが変更される
