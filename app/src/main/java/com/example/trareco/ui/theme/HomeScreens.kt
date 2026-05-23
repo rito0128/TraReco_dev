@@ -645,6 +645,8 @@ fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek:
         Log.d("DisplayOneDayRecordDialog", "dayDate = $dayDate")
         Log.d("index", "index = $index")
 
+        viewModel.TakeOverToDo(dayDate, viewModel, records)
+
         Box (modifier = Modifier
             .size(width = 400.dp, height = 350.dp)
             .clip(RoundedCornerShape(24.dp))
