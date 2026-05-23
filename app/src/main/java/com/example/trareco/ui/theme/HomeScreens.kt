@@ -70,6 +70,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Icon
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.window.Dialog
+import android.util.Log
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -273,6 +276,15 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     val currentTime = LocalDateTime.now()
     val recordsMapList = viewModel.convertToMap(records)
 
+    var showDialog by remember { mutableStateOf(false) } // ダイアログの表示用フラグ
+    var selectedDay: Int by remember { mutableStateOf(999) }
+    var selecteDayOfWeek: String by remember { mutableStateOf("") }
+    var index by remember { mutableStateOf(0) }
+
+    if (showDialog) {
+        DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDay, selecteDayOfWeek, viewModel, records, index)
+    }
+
     Column(
         modifier = Modifier
             .padding(20.dp)
@@ -289,7 +301,19 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
             val oneDayRecord2: TaskInfo = recordsMapList[1][nextDate]?: TaskInfo()
             val oneDayRecord3: TaskInfo = recordsMapList[2][nextDate]?: TaskInfo()
 
-            DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+            Box (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable{
+                        showDialog = true
+                        selecteDayOfWeek = nextTime.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.JAPANESE)
+                        selectedDay = nextTime.dayOfMonth
+                        index = i
+                    }
+            )
+            {
+                DayCalendar(nextTime, oneDayRecord1, oneDayRecord2, oneDayRecord3)
+            }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFF000000))
         }
     }
@@ -611,3 +635,30 @@ fun DisplayIconAndText(text : String, icon : Int, isClicked : Boolean){
     }
 }
 
+@Composable
+fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek: String, viewModel: MainViewModel, records:List<DailyRecord>, index: Int) {
+    val fontSize = 18
+    val dayDate = DateUtils.formatToKey(index)
+
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+
+        Log.d("DisplayOneDayRecordDialog", "dayDate = $dayDate")
+        Log.d("index", "index = $index")
+
+        viewModel.TakeOverToDo(dayDate, viewModel, records)
+
+        Box (modifier = Modifier
+            .size(width = 400.dp, height = 350.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(color = White)
+        ) {
+            Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally)
+            {
+                Text(text = day.toString() + "日" + "(" + dayOfWeek + ")", modifier = Modifier.padding(2.dp).width(110.dp), fontSize = fontSize.sp)
+                CheckToDo(date = dayDate, viewModel = viewModel, records = records)
+            }
+        }
+    }
+}
+
+// どの日付からダイアログにアクセスしても、最新の日付のデータが変更される
