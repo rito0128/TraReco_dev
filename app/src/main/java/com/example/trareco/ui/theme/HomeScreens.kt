@@ -72,6 +72,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.window.Dialog
+import android.util.Log
 
 @SuppressLint("NewApi")
 class MainActivity : ComponentActivity() {
@@ -278,7 +279,7 @@ fun Calendar(viewModel: MainViewModel, records:List<DailyRecord>) {
     var showDialog by remember { mutableStateOf(false) } // ダイアログの表示用フラグ
     var selectedDay: Int by remember { mutableStateOf(999) }
     var selecteDayOfWeek: String by remember { mutableStateOf("") }
-    var index = 0
+    var index by remember { mutableStateOf(0) }
 
     if (showDialog) {
         DisplayOneDayRecordDialog(onDismissRequest = {showDialog = false}, selectedDay, selecteDayOfWeek, viewModel, records, index)
@@ -640,6 +641,10 @@ fun DisplayOneDayRecordDialog(onDismissRequest: () -> Unit, day: Int, dayOfWeek:
     val dayDate = DateUtils.formatToKey(index)
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
+
+        Log.d("DisplayOneDayRecordDialog", "dayDate = $dayDate")
+        Log.d("index", "index = $index")
+
         Box (modifier = Modifier
             .size(width = 400.dp, height = 350.dp)
             .clip(RoundedCornerShape(24.dp))
